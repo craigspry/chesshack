@@ -4,6 +4,7 @@
 #include "types.h"
 #include "moves.h"
 #include <string.h>
+#include <unistd.h>
 
 void printboard(Piece *board[8][8])
 {
@@ -26,6 +27,8 @@ void printboard(Piece *board[8][8])
         }
         printf("\n_________________________________\n");
     }
+    sleep(1);
+    system ( "clear" );
 }
 
 int can_move(int row, int col, Piece *board[8][8])
@@ -55,8 +58,9 @@ Coord* addcoord(Coord* coord, int row, int col)
     return coord->next;
 }
 
-Coord* getmoves(int row, int col, char colour, Piece *board[8][8])
+BoardList* getmoves(int row, int col, char colour, Piece *board[8][8])
 {
+    BoardList* list = NULL;
     if(board[row][col] == NULL)
     {
         return NULL;
@@ -65,27 +69,16 @@ Coord* getmoves(int row, int col, char colour, Piece *board[8][8])
     {
         return NULL;
     }
-    if(board[row][col]->type == 'p' && board[row][col]->colour=='w')
+    if(board[row][col]->type == 'p' && board[row][col]->colour==colour)
     {
-
+        list = pawnmoves(row,col, board);
     }
-    if(board[row][col]->type == 'p' && board[row][col]->colour=='b')
+    if(board[row][col]->type == 'r' && board[row][col]->colour==colour)
     {
-        if(row<7 && !board[row+1][col])
-        {
-            //board[row+1][col] = board[row][col];
-            //board[row][col] = NULL;
-        }
-        if(row>0 && col<7 && board[row-1][col+1] != NULL && board[row-1][col+1]->colour=='w')
-        {
-            //do move
-        }
-        if(row<7 && col<7 && board[row+1][row+1] != NULL && board[row+1][col+1]->colour=='w')
-        {
-            //do move
-        }
+        list = rookmoves(row,col, board);
     }
 
+    /*
     BoardList* list = pawnmoves(1,2, board);
     list = joinlists(list, rookmoves(0,0, board));
     list = joinlists(list, rookmoves(0,7, board));
@@ -93,18 +86,27 @@ Coord* getmoves(int row, int col, char colour, Piece *board[8][8])
     //list = joinlists(list, rookmoves(7,7, board));
     list = joinlists(list, rookmoves(7,7, board));
 
+
+    */
     list = gettail(list);
     while(list)
     {
         printboard(list->board);
         list = list->last;
     }
-    return NULL;
+    return list;
 
 }
 
 void generatemovetree(Board *root, char rootcolour, char movecolour)
 {
+    for(int i=0;i<8;++i)
+    {
+        for(int j=0;j<8;++j)
+        {
+            BoardList* moves = getmoves(i,j, movecolour, root->board);
+        }
+    }
 
 }
 
@@ -121,7 +123,7 @@ void copyboard(Piece *origboard[8][8], Piece *newboard[8][8])
 
 BoardList* movepiece(int row, int col, int newrow, int newcol, Piece *board[8][8], BoardList* list)
 {
-    printf("moved from %d %d to %d %d\n", row, col, newrow, newcol);
+    //printf("moved from %d %d to %d %d\n", row, col, newrow, newcol);
     BoardList* rtn = (BoardList*) malloc(sizeof(BoardList));
     copyboard(board, rtn->board);
     rtn->board[newrow][newcol] = rtn->board[row][col];
@@ -145,7 +147,7 @@ BoardList* pawnmoves(int row, int col, Piece *board[8][8])
 
     if(board[row][col]->type == 'p' && board[row][col]->colour=='w')
     {
-        if(row>0 && !board[row+1][col])
+        if(row>0 && !board[row-1][col])
         {
             rtn = movepiece(row, col, row-1, col, board, rtn);
         }
@@ -323,7 +325,7 @@ void initialise_side(Piece *board[8][8], char colour, int row, int prow, int mul
     board[row][5] = initialise_piece( 'b', colour, 2, 30 * multiplier);
     board[row][6] = initialise_piece( 'n', colour, 2, 30* multiplier);
     board[row][7] = initialise_piece( 'r', colour, 2, 50);
-    for(int i=1;i<7;++i)
+    for(int i=0;i<8;++i)
     {
         board[prow][i] = initialise_piece( 'p', colour, i+1, 10* multiplier);
     }
