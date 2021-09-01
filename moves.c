@@ -8,6 +8,7 @@
 
 void printboard(Piece *board[8][8])
 {
+    system ( "clear" );
     printf("\n_________________________________\n");
     for(int i=0;i<8;++i)
     {
@@ -28,7 +29,7 @@ void printboard(Piece *board[8][8])
         printf("\n_________________________________\n");
     }
     sleep(1);
-    system ( "clear" );
+
 }
 
 int can_move(int row, int col, Piece *board[8][8])
@@ -77,34 +78,37 @@ BoardList* getmoves(int row, int col, char colour, Piece *board[8][8])
     {
         list = rookmoves(row,col, board);
     }
-
-    /*
-    BoardList* list = pawnmoves(1,2, board);
-    list = joinlists(list, rookmoves(0,0, board));
-    list = joinlists(list, rookmoves(0,7, board));
-    list = joinlists(list, rookmoves(7, 0, board));
-    //list = joinlists(list, rookmoves(7,7, board));
-    list = joinlists(list, rookmoves(7,7, board));
-
-
-    */
-    list = gettail(list);
-    while(list)
+    if(board[row][col]->type == 'b' && board[row][col]->colour==colour)
     {
-        printboard(list->board);
-        list = list->last;
+        list = bishopmoves(row,col, board);
     }
+    if(board[row][col]->type == 'q' && board[row][col]->colour==colour)
+    {
+        list = rookmoves(row,col, board);
+        list = joinlists(list, bishopmoves(row,col, board));
+    }
+    if(board[row][col]->type == 'k' && board[row][col]->colour==colour)
+    {
+        list = kingmoves(row,col, board);
+    }
+    if(board[row][col]->type == 'n' && board[row][col]->colour==colour)
+    {
+        list = knightmoves(row,col, board);
+    }
+
+
     return list;
 
 }
 
-void generatemovetree(Board *root, char rootcolour, char movecolour)
+void generatemovetree(Board *root, char rootcolour, char movecolour, int depthfa)
 {
     for(int i=0;i<8;++i)
     {
         for(int j=0;j<8;++j)
         {
             BoardList* moves = getmoves(i,j, movecolour, root->board);
+
         }
     }
 
@@ -123,7 +127,6 @@ void copyboard(Piece *origboard[8][8], Piece *newboard[8][8])
 
 BoardList* movepiece(int row, int col, int newrow, int newcol, Piece *board[8][8], BoardList* list)
 {
-    //printf("moved from %d %d to %d %d\n", row, col, newrow, newcol);
     BoardList* rtn = (BoardList*) malloc(sizeof(BoardList));
     copyboard(board, rtn->board);
     rtn->board[newrow][newcol] = rtn->board[row][col];
@@ -193,7 +196,6 @@ BoardList* rookmoves(int row, int col, Piece *board[8][8])
 
     for(int i=row+1;i<8;++i)
     {
-        printf("i:%d\n", i);
         if(board[i][col] && board[i][col]->colour==board[row][col]->colour)
         {
             break;
@@ -252,6 +254,88 @@ BoardList* rookmoves(int row, int col, Piece *board[8][8])
         {
             break;
         }
+    }
+    return rtn;
+}
+
+int validatemove(int orow,int ocol, int nrow, int ncol, Piece *board[8][8], BoardList** movelist)
+{
+    if((nrow>7 || nrow<0) || (ncol>7 || ncol<0))
+    {
+        return -4;
+    }
+    if(board[nrow][ncol] && board[nrow][ncol]->colour==board[orow][ocol]->colour)
+    {
+        return -1;
+    }
+    *movelist = movepiece(orow, ocol, nrow, ncol, board, *movelist);
+    if(board[nrow][ncol] && board[nrow][ncol]->colour!=board[orow][ocol]->colour)
+    {
+        return -2;
+    }
+    return 0;
+}
+
+BoardList* bishopmoves(int row, int col, Piece *board[8][8])
+{
+    BoardList* rtn = NULL;
+    for(int i=row+1,j=col+1;i<8&&j<8;++i,++j)
+    {
+        if(validatemove(row, col, i,j, board, &rtn)<0)
+        {
+            break;
+        }
+    }
+
+    for(int i=row-1,j=col+1;i>-1&&j<8;--i,++j)
+    {
+        if(validatemove(row, col, i,j, board, &rtn)<0)
+        {
+            break;
+        }
+    }
+
+    for(int i=row+1,j=col-1;i<8&&j>-1;++i,--j)
+    {
+        if(validatemove(row, col, i,j, board, &rtn)<0)
+        {
+            break;
+        }
+    }
+    for(int i=row-1,j=col-1;i>-1&&j>-1;--i,--j)
+    {
+        if(validatemove(row, col, i,j, board, &rtn)<0)
+        {
+            break;
+        }
+    }
+    return rtn;
+}
+
+BoardList* kingmoves(int row, int col, Piece *board[8][8])
+{
+    BoardList* rtn = NULL;
+    for(int i=-1;i<2;++i)
+    {
+        for(int j=-1;j<2;++j)
+        {
+            if(!(i==0 && j==0))
+            {
+                validatemove(row, col, row+i,col+j, board, &rtn);
+            }
+        }
+    }
+    return rtn;
+}
+
+BoardList* knightmoves(int row, int col, Piece *board[8][8])
+{
+    BoardList* rtn = NULL;
+    int cols[] ={-2,-2,-1,-1,1,1, 2,2};
+    int rows[] ={-1, 1,-2, 2,2,-2,1,-1};
+    for(int i=0;i<7;++i)
+    {
+        validatemove(row, col, row+rows[i],col+cols[i], board, &rtn);
     }
     return rtn;
 }
