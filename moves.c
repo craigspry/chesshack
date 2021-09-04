@@ -32,33 +32,6 @@ void printboard(Piece *board[8][8])
 
 }
 
-int can_move(int row, int col, Piece *board[8][8])
-{
-    if(!board[row][col]){
-        return 0;
-    }
-    return 1;
-}
-
-Coord* addcoord(Coord* coord, int row, int col)
-{
-    if(!coord)
-    {
-        coord = (Coord*)malloc(sizeof(Coord));
-        coord->row = row;
-        coord->col = col;
-        coord->next = NULL;
-        coord->last = NULL;
-        return coord;
-    }
-    coord->next = (Coord*)malloc(sizeof(Coord));
-    coord->next->last = coord;
-    coord->next->row = row;
-    coord->next->col = col;
-    coord->next->next = NULL;
-    return coord->next;
-}
-
 BoardList* getmoves(int row, int col, char colour, Piece *board[8][8])
 {
     BoardList* list = NULL;
@@ -95,23 +68,62 @@ BoardList* getmoves(int row, int col, char colour, Piece *board[8][8])
     {
         list = knightmoves(row,col, board);
     }
-
-
     return list;
-
 }
 
-void generatemovetree(Board *root, char rootcolour, char movecolour, int depthfa)
+char oppositecolour(char colour)
 {
+    return 'b' ? colour == 'w' : 'w';
+}
+
+void generatemovetree(Board *root, char rootcolour, char movecolour, int depth)
+{
+    if(depth < 1)
+    {
+        return;
+    }
     for(int i=0;i<8;++i)
     {
         for(int j=0;j<8;++j)
         {
             BoardList* moves = getmoves(i,j, movecolour, root->board);
-
+            BoardList* move = gethead(moves);
+            while(move != NULL)
+            {
+                Board *board = (Board*) malloc(sizeof(Board));
+                copyboard(move->board, board->board);
+                board->score = calcscore(board->board);
+                if(root->children == NULL)
+                {
+                    root->children = board;
+                }
+                else
+                {
+                        root->children->nextsibbling = board;
+                        board->lastsibbling = root->children;
+                        root->children = board;
+                }
+                //generatemovetree(root->children, oppositecolour(movecolour), rootcolour, depth-1);
+                move = move->next;
+            }
         }
     }
+}
 
+int calcscore(Piece *board[8][8])
+{
+    int score = 0;
+    for(int i=0;i<8;++i)
+    {
+        for(int j=0;j<8;++j)
+        {
+            if(board[i][j])
+            {
+                score += board[i][j]->importance;
+            }
+        }
+    }
+    return score;
 }
 
 void copyboard(Piece *origboard[8][8], Piece *newboard[8][8])
@@ -120,6 +132,7 @@ void copyboard(Piece *origboard[8][8], Piece *newboard[8][8])
     {
         for(int j=0;j<8;++j)
         {
+            //printf("%d %d\n", i, j);
             newboard[i][j] = origboard[i][j];
         }
     }
@@ -174,7 +187,7 @@ BoardList* pawnmoves(int row, int col, Piece *board[8][8])
         {
             rtn = movepiece(row, col, row+1, col, board, rtn);
         }
-        if(row<7 && col<7 && board[row+1][col+1] != NULL && board[row-1][col+1]->colour=='w')
+        if(row<7 && col<7 && board[row+1][col+1] != NULL && board[row+1][col+1]->colour=='w')
         {
             rtn = movepiece(row, col, row+1, col+1, board, rtn);
         }
@@ -196,24 +209,14 @@ BoardList* rookmoves(int row, int col, Piece *board[8][8])
 
     for(int i=row+1;i<8;++i)
     {
-        if(board[i][col] && board[i][col]->colour==board[row][col]->colour)
-        {
-            break;
-        }
-        rtn = movepiece(row, col, i, col, board, rtn);
-        if(board[i][col] && board[i][col]->colour!=board[row][col]->colour)
+        if(validatemove(row, col, i, col, board, &rtn)<0)
         {
             break;
         }
     }
     for(int i=row-1;i>=0;--i)
     {
-        if(board[i][col] && board[i][col]->colour==board[row][col]->colour)
-        {
-            break;
-        }
-        rtn = movepiece(row, col, i, col, board, rtn);
-        if(board[i][col] && board[i][col]->colour!=board[row][col]->colour)
+        if(validatemove(row, col, i, col, board, &rtn)<0)
         {
             break;
         }
@@ -221,36 +224,14 @@ BoardList* rookmoves(int row, int col, Piece *board[8][8])
 
     for(int i=col-1;i>=0;--i)
     {
-        if(board[row][i] && board[row][i]->colour==board[row][col]->colour)
-        {
-            break;
-        }
-        rtn = movepiece(row, col, row, i, board, rtn);
-        if(board[row][i] && board[row][i]->colour!=board[row][col]->colour)
+        if(validatemove(row, col, row, i, board, &rtn)<0)
         {
             break;
         }
     }
     for(int i=col+1;i<8;++i)
     {
-        if(board[row][i] && board[row][i]->colour==board[row][col]->colour)
-        {
-            break;
-        }
-        rtn = movepiece(row, col, row, i, board, rtn);
-        if(board[row][i] && board[row][i]->colour!=board[row][col]->colour)
-        {
-            break;
-        }
-    }
-    for(int i=col-1;i>=0;--i)
-    {
-        if(board[row][i] && board[row][i]->colour==board[row][col]->colour)
-        {
-            break;
-        }
-        rtn = movepiece(row, col, row, i, board, rtn);
-        if(board[row][i] && board[row][i]->colour!=board[row][col]->colour)
+        if(validatemove(row, col, row, i, board, &rtn)<0)
         {
             break;
         }
@@ -275,6 +256,12 @@ int validatemove(int orow,int ocol, int nrow, int ncol, Piece *board[8][8], Boar
     }
     return 0;
 }
+
+/*
+int cantakeking(char colour, Piece *board[8][8])
+{
+
+}*/
 
 BoardList* bishopmoves(int row, int col, Piece *board[8][8])
 {
@@ -409,6 +396,7 @@ void initialise_side(Piece *board[8][8], char colour, int row, int prow, int mul
     board[row][5] = initialise_piece( 'b', colour, 2, 30 * multiplier);
     board[row][6] = initialise_piece( 'n', colour, 2, 30* multiplier);
     board[row][7] = initialise_piece( 'r', colour, 2, 50);
+
     for(int i=0;i<8;++i)
     {
         board[prow][i] = initialise_piece( 'p', colour, i+1, 10* multiplier);
