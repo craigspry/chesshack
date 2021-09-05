@@ -43,11 +43,11 @@ int main(void)
         copyboard(main_board, b2.board);
         generatemovetree(&b2, 'b', 'b', 1);
         bestMove = b2.children;
-        if(b2.children = NULL)
+        if(b2.children == NULL)
         {
             printf("W WIN\n");
         }
-        topScoreb = b.children->score;
+        topScoreb = b2.children->score;
         for(Board* best=b2.children;best!=NULL; best=best->lastsibbling)
         {
             if(best->score <= topScoreb)
