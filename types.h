@@ -11,15 +11,6 @@ typedef struct Pieces
 
 } Piece;
 
-typedef struct Coords
-{
-   int row;
-   int col;
-   int score;
-   struct Coords* next;
-   struct Coords* last;
-} Coord;
-
 typedef struct Boards
 {
     Piece *board[8][8];
@@ -37,5 +28,16 @@ typedef struct BoardLists
     struct BoardLists* next;
     struct BoardLists* last;
 } BoardList;
+
+
+typedef struct Moves
+{
+    int orow;
+    int ocol;
+    int row;
+    int col;
+    struct Move* next;
+    struct Move* last;
+} MoveList;
 
 #endif // TYPES_H_INCLUDED

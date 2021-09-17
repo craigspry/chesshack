@@ -73,7 +73,7 @@ BoardList* getmoves(int row, int col, char colour, Piece *board[8][8])
 
 char oppositecolour(char colour)
 {
-    return 'b' ? colour == 'w' : 'w';
+    return colour == 'w' ?  'b' : 'w';
 }
 
 void generatemovetree(Board *root, char rootcolour, char movecolour, int depth)
@@ -103,11 +103,35 @@ void generatemovetree(Board *root, char rootcolour, char movecolour, int depth)
                         board->lastsibbling = root->children;
                         root->children = board;
                 }
-                //generatemovetree(root->children, oppositecolour(movecolour), rootcolour, depth-1);
+                generatemovetree(root->children, oppositecolour(movecolour), rootcolour, depth-1);
+
+                //BoardList* nextmove = move->next;
+                BoardList* lastmove = move;
                 move = move->next;
+                //free(lastmove);
             }
         }
     }
+}
+
+BoardList* generatemoves(Piece *board[8][8], char movecolour)
+{
+    BoardList* rtn;
+    int cntr = 0;
+    for(int i=0;i<8;++i)
+    {
+        for(int j=0;j<8;++j)
+        {
+            BoardList* moves = getmoves(i,j, movecolour, board);
+            if(moves != NULL)
+            {
+                ++cntr;
+            }
+            rtn = joinlists(rtn, moves);
+        }
+    }
+    printf("generated %d moves\n", cntr);
+    return gethead(rtn);
 }
 
 int calcscore(Piece *board[8][8])
@@ -126,6 +150,15 @@ int calcscore(Piece *board[8][8])
     return score;
 }
 
+void copyPiece(Piece* in, Piece* out)
+{
+    out->colour = in->colour;
+    out->id = in->id;
+    out->importance = in->importance;
+    out->moves = in->moves;
+    out->type = in->type;
+}
+
 void copyboard(Piece *origboard[8][8], Piece *newboard[8][8])
 {
     for(int i=0;i<8;++i)
@@ -133,7 +166,17 @@ void copyboard(Piece *origboard[8][8], Piece *newboard[8][8])
         for(int j=0;j<8;++j)
         {
             //printf("%d %d\n", i, j);
-            newboard[i][j] = origboard[i][j];
+            if(origboard[i][j])
+            {
+                Piece *pce = (Piece*) malloc(sizeof(Piece));
+                copyPiece(origboard[i][j], pce);
+                newboard[i][j] = pce;
+            }
+            else
+            {
+                newboard[i][j] = origboard[i][j];
+            }
+
         }
     }
 }
@@ -143,8 +186,15 @@ BoardList* movepiece(int row, int col, int newrow, int newcol, Piece *board[8][8
     BoardList* rtn = (BoardList*) malloc(sizeof(BoardList));
     copyboard(board, rtn->board);
     rtn->board[newrow][newcol] = rtn->board[row][col];
+    rtn->board[newrow][newcol]->moves++;
     rtn->board[row][col] = NULL;
-    if(list != NULL)
+    if(incheck(rtn->board[newrow][newcol]->colour, rtn->board))
+    {
+        printf("IN CHECK %c", rtn->board[newrow][newcol]->colour);
+        //free(rtn);
+        return list;
+    }
+    else if(list != NULL)
     {
         list->next =rtn;
         rtn->last = list;
@@ -257,11 +307,42 @@ int validatemove(int orow,int ocol, int nrow, int ncol, Piece *board[8][8], Boar
     return 0;
 }
 
-/*
-int cantakeking(char colour, Piece *board[8][8])
+int incheck(char colour, Piece *board[8][8])
 {
+    BoardList* moves = generatemoves(board, oppositecolour(colour));
+    int isincheck = 0;
+    int cntr=0;
+    while(moves != NULL)
+    {
+        int foundking = 0;
+        for(int i=0;i<8;++i)
+        {
+            for(int j=0;j<8;++j)
+            {
+                if(moves->board[i][j])
+                {
+                    ++cntr;
+                    if(moves->board[i][j]->colour == colour &&  moves->board[i][j]->type == 'k')
+                    {
+                        foundking = 1;
+                    }
+                }
+            }
+        }
+        if(foundking == 0)
+        {
+            printf("IN CHECK ********* %c\n", colour);
+            sleep(10);
+            isincheck = 1;
+        }
 
-}*/
+        moves = moves->next;
+    }
+    printf("*********CHECKED %d MOVES ********* %c\n", cntr);
+    sleep(1);
+    return isincheck;
+
+}
 
 BoardList* bishopmoves(int row, int col, Piece *board[8][8])
 {

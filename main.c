@@ -1,8 +1,8 @@
 #include "types.h"
 #include "moves.h"
 #include <stdlib.h>
-
-
+#include <string.h>
+#include <stdio.h>
 
 int main(void)
 {
@@ -23,13 +23,14 @@ int main(void)
         b.lastsibbling = NULL;
         b2.children = NULL;
         generatemovetree(&b, 'w', 'w', 1);
-        topScore = b.children->score;
-        bestMove = b.children;
-        if(b.children = NULL)
+
+        if(b.children == NULL)
         {
             printf("B WIN\n");
             return 0;
         }
+        topScore = b.children->score;
+        bestMove = b.children;
         for(Board* best=b.children;best!=NULL; best=best->lastsibbling)
         {
             if(best->score >= topScore)
@@ -46,6 +47,7 @@ int main(void)
         if(b2.children == NULL)
         {
             printf("W WIN\n");
+            return 0;
         }
         topScoreb = b2.children->score;
         for(Board* best=b2.children;best!=NULL; best=best->lastsibbling)
@@ -56,7 +58,7 @@ int main(void)
                 bestMove = best;
             }
         }
-        copyboard(bestMove, main_board);
+        copyboard(bestMove->board, main_board);
         printboard(main_board);
     }
 
