@@ -76,12 +76,34 @@ char oppositecolour(char colour)
     return colour == 'w' ?  'b' : 'w';
 }
 
-void generatemovetree(Board *root, char rootcolour, char movecolour, int depth)
+MoveList* getbestmove(MoveList* move1, MoveList* move2, char colour)
+{
+    if(move1==NULL && move2==NULL)
+    {
+        return NULL;
+    }
+    if(move1!=NULL && move2==NULL)
+    {
+        return move1;
+    }
+    if(move1==NULL && move2!=NULL)
+    {
+        return move2;
+    }
+    if(colour == 'w')
+    {
+        return move1->score > move2->score ? move1 : move2;
+    }
+    return move1->score < move2->score ? move1 : move2;
+}
+
+MoveList* generatemovetree(Board *root, char rootcolour, char movecolour, int depth)
 {
     if(depth < 1)
     {
-        return;
+        return NULL;
     }
+    MoveList* bestmove=NULL;
     for(int i=0;i<8;++i)
     {
         for(int j=0;j<8;++j)
@@ -92,7 +114,7 @@ void generatemovetree(Board *root, char rootcolour, char movecolour, int depth)
             {
                 Board *board = (Board*) malloc(sizeof(Board));
                 copyboard(root->board, board->board);
-                movepiece(move->orow, move->ocol, move->row, move->col, board->board);
+                movepiecetest(move->orow, move->ocol, move->row, move->col, board->board);
                 board->score = calcscore(board->board);
                 if(incheck(movecolour, board->board)==0)
                 {
@@ -102,23 +124,48 @@ void generatemovetree(Board *root, char rootcolour, char movecolour, int depth)
                     }
                     else
                     {
-                            root->children->nextsibbling = board;
-                            board->lastsibbling = root->children;
-                            root->children = board;
+                        root->children->nextsibbling = board;
+                        board->lastsibbling = root->children;
+                        root->children = board;
                     }
-                    generatemovetree(root->children, oppositecolour(movecolour), rootcolour, depth-1);
+                    move->score = board->score;
+                    if(depth > 1)
+                    {
+                        MoveList* rtnmove = generatemovetree(root->children, oppositecolour(movecolour), rootcolour, depth-1);
+                        if(rtnmove)
+                        {
+                            move->score += rtnmove->score;
+                        }
+
+                    }
+                    bestmove = getbestmove(move, bestmove, movecolour);
+
                 }
                 else
                 {
                     free(board);
                 }
                 //BoardList* nextmove = move->next;
+                //MoveList* lastmove = move;
+
+                move = move->next;
+                //free(lastmove);
+            }
+            move = getmovelisthead(moves);
+            while(move != NULL)
+            {
                 MoveList* lastmove = move;
                 move = move->next;
-                free(lastmove);
+                if(lastmove != bestmove)
+                {
+                    lastmove->next=NULL;
+                    lastmove->last=NULL;
+                    free(lastmove);
+                }
             }
         }
     }
+    return bestmove;
 }
 
 MoveList* generatemoves(Piece *board[8][8], char movecolour)
@@ -171,18 +218,7 @@ void copyboard(Piece *origboard[8][8], Piece *newboard[8][8])
     {
         for(int j=0;j<8;++j)
         {
-            //printf("%d %d\n", i, j);
-            if(origboard[i][j])
-            {
-                Piece *pce = (Piece*) malloc(sizeof(Piece));
-                copyPiece(origboard[i][j], pce);
-                newboard[i][j] = pce;
-            }
-            else
-            {
-                newboard[i][j] = origboard[i][j];
-            }
-
+            newboard[i][j] = origboard[i][j];
         }
     }
 }
@@ -211,10 +247,16 @@ MoveList* generatemove(int row, int col, int newrow, int newcol, Piece *board[8]
 }
 
 
-void movepiece(int row, int col, int newrow, int newcol, Piece *board[8][8])
+void movepiecetest(int row, int col, int newrow, int newcol, Piece *board[8][8])
 {
     board[newrow][newcol] = board[row][col];
-    //board[newrow][newcol]->moves++;
+    board[row][col] = NULL;
+}
+
+void movepiecereal(int row, int col, int newrow, int newcol, Piece *board[8][8])
+{
+    board[newrow][newcol] = board[row][col];
+    board[newrow][newcol]->moves++;
     board[row][col] = NULL;
 }
 

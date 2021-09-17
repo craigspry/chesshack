@@ -36,6 +36,7 @@ typedef struct Moves
     int ocol;
     int row;
     int col;
+    int score;
     struct Moves* next;
     struct Moves* last;
 } MoveList;

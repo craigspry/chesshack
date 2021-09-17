@@ -7,7 +7,8 @@ void initialise_board(Piece *board[8][8]);
 Piece* initialise_piece(char type, char colour, int id, int importance);
 void initialise_side(Piece *board[8][8], char colour, int row, int prow, int multiplier);
 void freemem(Piece *Poard[8][8]);
-void movepiece(int row, int col, int newrow, int newcol, Piece *board[8][8]);
+void movepiecetest(int row, int col, int newrow, int newcol, Piece *board[8][8]);
+void movepiecereal(int row, int col, int newrow, int newcol, Piece *board[8][8]);
 
 void printboard(Piece *board[8][8]);
 
@@ -37,7 +38,9 @@ BoardList* joinlists(BoardList* list1, BoardList* list2);
 
 void copyboard(Piece *origboard[8][8], Piece *newboard[8][8]);
 int calcscore(Piece *board[8][8]);
-void generatemovetree(Board *root, char rootcolour, char movecolour, int depth);
+MoveList* generatemovetree(Board *root, char rootcolour, char movecolour, int depth);
+
+MoveList* getbestmove(MoveList* move1, MoveList* move2, char colour);
 
 
 
