@@ -13,52 +13,29 @@ int main(void)
 
     for(int i=0;i<50;++i)
     {
-        Board b, b2;
-        int topScore=0;
-        int topScoreb=0;
-        Board* bestMove=NULL;
-        copyboard(main_board, b.board);
-        b.children = NULL;
-        b.score = 0;
-        b.lastsibbling = NULL;
-        b2.children = NULL;
-        generatemovetree(&b, 'w', 'w', 1);
-
-        if(b.children == NULL)
+        MoveList* move = generatemovetree(main_board, 'w', 'w', 5);
+        if(move == NULL)
         {
             printf("B WIN\n");
             return 0;
         }
-        topScore = b.children->score;
-        bestMove = b.children;
-        for(Board* best=b.children;best!=NULL; best=best->lastsibbling)
-        {
-            if(best->score >= topScore)
-            {
-                topScore = best->score;
-                bestMove = best;
-            }
-        }
-        copyboard(bestMove->board, main_board);
+        printf("W Best move %d\n", move->score);
+        movepiecereal(move->orow, move->ocol, move->row, move->col, main_board);
+        move->last=NULL;
+        move->next=NULL;
+        free(move);
+
+
+        //copyboard(bestMove->board, main_board);
         printboard(main_board);
-        copyboard(main_board, b2.board);
-        generatemovetree(&b2, 'b', 'b', 1);
-        bestMove = b2.children;
-        if(b2.children == NULL)
+        move = generatemovetree(main_board, 'b', 'b', 5);
+        if(move == NULL)
         {
             printf("W WIN\n");
             return 0;
         }
-        topScoreb = b2.children->score;
-        for(Board* best=b2.children;best!=NULL; best=best->lastsibbling)
-        {
-            if(best->score <= topScoreb)
-            {
-                topScoreb = best->score;
-                bestMove = best;
-            }
-        }
-        copyboard(bestMove->board, main_board);
+        printf("B Best move %d\n", move->score);
+        movepiecereal(move->orow, move->ocol, move->row, move->col, main_board);
         printboard(main_board);
     }
 

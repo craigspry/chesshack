@@ -38,7 +38,7 @@ BoardList* joinlists(BoardList* list1, BoardList* list2);
 
 void copyboard(Piece *origboard[8][8], Piece *newboard[8][8]);
 int calcscore(Piece *board[8][8]);
-MoveList* generatemovetree(Board *root, char rootcolour, char movecolour, int depth);
+MoveList* generatemovetree(Piece *root[8][8], char rootcolour, char movecolour, int depth);
 
 MoveList* getbestmove(MoveList* move1, MoveList* move2, char colour);
 

@@ -8,6 +8,7 @@
 
 void printboard(Piece *board[8][8])
 {
+    sleep(1);
     system ( "clear" );
     printf("\n_________________________________\n");
     for(int i=0;i<8;++i)
@@ -97,7 +98,7 @@ MoveList* getbestmove(MoveList* move1, MoveList* move2, char colour)
     return move1->score < move2->score ? move1 : move2;
 }
 
-MoveList* generatemovetree(Board *root, char rootcolour, char movecolour, int depth)
+MoveList* generatemovetree(Piece *root[8][8], char rootcolour, char movecolour, int depth)
 {
     if(depth < 1)
     {
@@ -108,42 +109,31 @@ MoveList* generatemovetree(Board *root, char rootcolour, char movecolour, int de
     {
         for(int j=0;j<8;++j)
         {
-            MoveList* moves = getmoves(i,j, movecolour, root->board);
+            MoveList* moves = getmoves(i,j, movecolour, root);
             MoveList* move = getmovelisthead(moves);
             while(move != NULL)
             {
-                Board *board = (Board*) malloc(sizeof(Board));
-                copyboard(root->board, board->board);
-                movepiecetest(move->orow, move->ocol, move->row, move->col, board->board);
-                board->score = calcscore(board->board);
-                if(incheck(movecolour, board->board)==0)
+                Piece *test_board[8][8];
+                copyboard(root, test_board);
+                movepiecetest(move->orow, move->ocol, move->row, move->col, test_board);
+
+                if(incheck(movecolour, test_board)==0)
                 {
-                    if(root->children == NULL)
-                    {
-                        root->children = board;
-                    }
-                    else
-                    {
-                        root->children->nextsibbling = board;
-                        board->lastsibbling = root->children;
-                        root->children = board;
-                    }
-                    move->score = board->score;
+                    move->score = calcscore(test_board);
                     if(depth > 1)
                     {
-                        MoveList* rtnmove = generatemovetree(root->children, oppositecolour(movecolour), rootcolour, depth-1);
+                        MoveList* rtnmove = generatemovetree(test_board, oppositecolour(movecolour), rootcolour, depth-1);
                         if(rtnmove)
                         {
                             move->score += rtnmove->score;
+                            rtnmove->next=NULL;
+                            rtnmove->last=NULL;
+                            free(rtnmove);
                         }
 
                     }
                     bestmove = getbestmove(move, bestmove, movecolour);
 
-                }
-                else
-                {
-                    free(board);
                 }
                 //BoardList* nextmove = move->next;
                 //MoveList* lastmove = move;
@@ -577,7 +567,7 @@ void initialise_side(Piece *board[8][8], char colour, int row, int prow, int mul
     board[row][4] = initialise_piece( 'k', colour, 1, 900 * multiplier);
     board[row][5] = initialise_piece( 'b', colour, 2, 30 * multiplier);
     board[row][6] = initialise_piece( 'n', colour, 2, 30* multiplier);
-    board[row][7] = initialise_piece( 'r', colour, 2, 50);
+    board[row][7] = initialise_piece( 'r', colour, 2, 50* multiplier);
 
     for(int i=0;i<8;++i)
     {
