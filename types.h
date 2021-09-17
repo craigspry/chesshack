@@ -36,8 +36,8 @@ typedef struct Moves
     int ocol;
     int row;
     int col;
-    struct Move* next;
-    struct Move* last;
+    struct Moves* next;
+    struct Moves* last;
 } MoveList;
 
 #endif // TYPES_H_INCLUDED
