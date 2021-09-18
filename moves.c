@@ -8,7 +8,7 @@
 
 void printboard(Piece *board[8][8])
 {
-    sleep(1);
+    //sleep(1);
     system ( "clear" );
     printf("\n_________________________________\n");
     for(int i=0;i<8;++i)
@@ -29,7 +29,7 @@ void printboard(Piece *board[8][8])
         }
         printf("\n_________________________________\n");
     }
-    sleep(1);
+    //sleep(1);
 
 }
 
@@ -91,6 +91,10 @@ MoveList* getbestmove(MoveList* move1, MoveList* move2, char colour)
     {
         return move2;
     }
+    if(move2->score == move1->score)
+    {
+        return move1;
+    }
     if(colour == 'w')
     {
         return move1->score > move2->score ? move1 : move2;
@@ -142,10 +146,17 @@ MoveList* generatemovetree(Piece *root[8][8], char rootcolour, char movecolour, 
                 //free(lastmove);
             }
             move = getmovelisthead(moves);
+            int minmove=5000, maxmove=-5000;
             while(move != NULL)
             {
                 MoveList* lastmove = move;
                 move = move->next;
+
+                if(lastmove->score < minmove)
+                    minmove = lastmove->score;
+                if(lastmove->score > maxmove)
+                    maxmove = lastmove->score;
+
                 if(lastmove != bestmove)
                 {
                     lastmove->next=NULL;
@@ -153,6 +164,8 @@ MoveList* generatemovetree(Piece *root[8][8], char rootcolour, char movecolour, 
                     free(lastmove);
                 }
             }
+            //if(minmove < 5000 && minmove!=0 && maxmove!=0)
+            //    printf("min max %d %d\n", minmove, maxmove);
         }
     }
     return bestmove;
@@ -180,17 +193,20 @@ MoveList* generatemoves(Piece *board[8][8], char movecolour)
 int calcscore(Piece *board[8][8])
 {
     int score = 0;
+    int winc = incheck('w', board) * -50;
+    int binc = incheck('w', board) * 50;
     for(int i=0;i<8;++i)
     {
         for(int j=0;j<8;++j)
         {
             if(board[i][j])
             {
+
                 score += board[i][j]->importance;
             }
         }
     }
-    return score;
+    return score + winc + binc;
 }
 
 void copyPiece(Piece* in, Piece* out)
@@ -222,6 +238,7 @@ MoveList* generatemove(int row, int col, int newrow, int newcol, Piece *board[8]
     rtn->col = newcol;
     rtn->row = newrow;
     rtn->next = NULL;
+    rtn->score = 0;
     if(list != NULL)
     {
         list->next = rtn;
@@ -245,6 +262,10 @@ void movepiecetest(int row, int col, int newrow, int newcol, Piece *board[8][8])
 
 void movepiecereal(int row, int col, int newrow, int newcol, Piece *board[8][8])
 {
+    if(board[newrow][newcol])
+    {
+        free(board[newrow][newcol]);
+    }
     board[newrow][newcol] = board[row][col];
     board[newrow][newcol]->moves++;
     board[row][col] = NULL;
@@ -268,7 +289,7 @@ MoveList* pawnmoves(int row, int col, Piece *board[8][8])
         {
             rtn = generatemove(row, col, row-1, col-1, board, rtn);
         }
-        if(row==6 && !board[row-2][col])
+        if(row==6 && !board[row-2][col] && !board[row-1][col])
         {
             rtn = generatemove(row, col, row-2, col, board, rtn);
         }
@@ -288,7 +309,7 @@ MoveList* pawnmoves(int row, int col, Piece *board[8][8])
         {
             rtn = generatemove(row, col, row+1, col-1, board, rtn);
         }
-        if(row==1 && !board[row+2][col])
+        if(row==1 && !board[row+2][col]&& !board[row+1][col])
         {
             rtn = generatemove(row, col, row+2, col, board, rtn);
         }
