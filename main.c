@@ -11,12 +11,12 @@ int main(void)
     initialise_board(main_board);
 
 
-    for(int i=0;i<50;++i)
+    for(int i=0;i<2;++i)
     {
         printboard(main_board);
         printf("White Move Current score %d Move %d\n", calcscore(main_board), i);
 
-        MoveList* move = generatemovetree(main_board, 'w', 'w', 6);
+        MoveList* move = generatemovetree(main_board, 'w', 'w', 4);
         if(move == NULL)
         {
             printf("B WIN\n");
@@ -32,7 +32,7 @@ int main(void)
         //copyboard(bestMove->board, main_board);
         printboard(main_board);
         printf("Black Move Current score %d move %d\n", calcscore(main_board), i);
-        move = generatemovetree(main_board, 'b', 'b',6);
+        move = generatemovetree(main_board, 'b', 'b',4);
         if(move == NULL)
         {
             printf("W WIN\n");

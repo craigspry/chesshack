@@ -193,15 +193,18 @@ MoveList* generatemoves(Piece *board[8][8], char movecolour)
 int calcscore(Piece *board[8][8])
 {
     int score = 0;
-    int winc = incheck('w', board) * -50;
-    int binc = incheck('w', board) * 50;
+    int winc = incheck('w', board) * 400;
+    int binc = incheck('b', board) * -400;
     for(int i=0;i<8;++i)
     {
         for(int j=0;j<8;++j)
         {
             if(board[i][j])
             {
-
+                //if(board[i][j]->moves == 1)
+                //{
+                //    score += board[i][j]->importance*10;
+                //}
                 score += board[i][j]->importance;
             }
         }
@@ -268,6 +271,18 @@ void movepiecereal(int row, int col, int newrow, int newcol, Piece *board[8][8])
     }
     board[newrow][newcol] = board[row][col];
     board[newrow][newcol]->moves++;
+    if(board[newrow][newcol]->type=='p' && board[newrow][newcol]->colour=='w' && newrow == 0)
+    {
+        board[newrow][newcol]->type = 'q';
+        board[newrow][newcol]->id += 10;
+        board[newrow][newcol]->importance = 90;
+    }
+    if(board[newrow][newcol]->type=='p' && board[newrow][newcol]->colour=='b' && newrow == 7)
+    {
+        board[newrow][newcol]->type = 'q';
+        board[newrow][newcol]->id += 10;
+        board[newrow][newcol]->importance = -90;
+    }
     board[row][col] = NULL;
 }
 
