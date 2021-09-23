@@ -139,11 +139,7 @@ MoveList* generatemovetree(Piece *root[8][8], char rootcolour, char movecolour, 
                     bestmove = getbestmove(move, bestmove, movecolour);
 
                 }
-                //BoardList* nextmove = move->next;
-                //MoveList* lastmove = move;
-
                 move = move->next;
-                //free(lastmove);
             }
             move = getmovelisthead(moves);
             int minmove=5000, maxmove=-5000;
@@ -481,58 +477,6 @@ MoveList* knightmoves(int row, int col, Piece *board[8][8])
         validatemove(row, col, row+rows[i],col+cols[i], board, &rtn);
     }
     return rtn;
-}
-
-BoardList* joinlists(BoardList* list1, BoardList* list2)
-{
-    if(list1==NULL && list2 == NULL)
-    {
-        return NULL;
-    }
-    if(list1!=NULL && list2 == NULL)
-    {
-        return gethead(list1);
-    }
-    if((list1==NULL && list2 != NULL))
-    {
-        return gethead(list2);
-    }
-    BoardList* head2=gethead(list2);
-    BoardList* tail1=gettail(list1);
-
-    tail1->next = head2;
-    head2->last = tail1;
-
-    return gethead(head2);
-
-}
-
-BoardList* gethead(BoardList* list1)
-{
-    BoardList *head = list1;
-    if(head==NULL)
-    {
-        return NULL;
-    }
-    while(head->last!=NULL)
-    {
-        head = head->last;
-    }
-    return head;
-}
-
-BoardList* gettail(BoardList* list1)
-{
-    BoardList *tail = list1;
-    if(tail==NULL)
-    {
-        return NULL;
-    }
-    while(tail->next!=NULL)
-    {
-        tail = tail->next;
-    }
-    return tail;
 }
 
 

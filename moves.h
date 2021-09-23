@@ -28,14 +28,6 @@ MoveList* getmovelisthead(MoveList* list1);
 MoveList* getmovelisttail(MoveList* list1);
 MoveList* joinmovelists(MoveList* list1, MoveList* list2);
 
-
-
-BoardList* gethead(BoardList* list1);
-BoardList* gettail(BoardList* list1);
-BoardList* joinlists(BoardList* list1, BoardList* list2);
-
-
-
 void copyboard(Piece *origboard[8][8], Piece *newboard[8][8]);
 int calcscore(Piece *board[8][8]);
 MoveList* generatemovetree(Piece *root[8][8], char rootcolour, char movecolour, int depth);

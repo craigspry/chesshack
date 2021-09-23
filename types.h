@@ -11,25 +11,6 @@ typedef struct Pieces
 
 } Piece;
 
-typedef struct Boards
-{
-    Piece *board[8][8];
-    int score;
-    int depth;
-    struct Boards* parent;
-    struct Boards* children;
-    struct Boards* lastsibbling;
-    struct Boards* nextsibbling;
-} Board;
-
-typedef struct BoardLists
-{
-    Piece *board[8][8];
-    struct BoardLists* next;
-    struct BoardLists* last;
-} BoardList;
-
-
 typedef struct Moves
 {
     int orow;
