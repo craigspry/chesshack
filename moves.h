@@ -27,6 +27,8 @@ int incheck(char colour, Piece *board[8][8]);
 MoveList* getmovelisthead(MoveList* list1);
 MoveList* getmovelisttail(MoveList* list1);
 MoveList* joinmovelists(MoveList* list1, MoveList* list2);
+void copymovelist(MoveList* src, MoveList* dest);
+void printmove(MoveList* mve);
 
 void copyboard(Piece *origboard[8][8], Piece *newboard[8][8]);
 int calcscore(Piece *board[8][8]);

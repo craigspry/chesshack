@@ -91,6 +91,14 @@ MoveList* getbestmove(MoveList* move1, MoveList* move2, char colour)
     {
         return move2;
     }
+    if(move1->col==0 && move1->row==0 && move1->orow == 0 && move1->ocol == 0)
+    {
+        return move2;
+    }
+    if(move2->col==0 && move2->row==0 && move2->orow == 0 && move2->ocol == 0)
+    {
+        return move1;
+    }
     if(move2->score == move1->score)
     {
         return move1;
@@ -136,22 +144,36 @@ MoveList* generatemovetree(Piece *root[8][8], char rootcolour, char movecolour, 
                         }
 
                     }
-                    bestmove = getbestmove(move, bestmove, movecolour);
-
+                    if(bestmove == NULL)
+                    {
+                        bestmove = (MoveList*) malloc(sizeof(MoveList));
+                        bestmove->col = 0;
+                        bestmove->row = 0;
+                        bestmove->ocol = 0;
+                        bestmove->orow = 0;
+                        bestmove->score = 0;
+                        bestmove->last = NULL;
+                        bestmove->next = NULL;
+                    }
+                    //copymovelist(getbestmove(move, bestmove, movecolour), bestmove);
+                    //bestmove = getbestmove(move, bestmove, movecolour);
+                    MoveList* bmve = getbestmove(move, bestmove, movecolour);
+                    if(bmve->row != bmve->orow || bmve->col != bmve->ocol)
+                    {
+                        copymovelist(bmve, bestmove);
+                    }
+                    else
+                    {
+                        copymovelist(move, bestmove);
+                    }
                 }
                 move = move->next;
             }
             move = getmovelisthead(moves);
-            int minmove=5000, maxmove=-5000;
             while(move != NULL)
             {
                 MoveList* lastmove = move;
                 move = move->next;
-
-                if(lastmove->score < minmove)
-                    minmove = lastmove->score;
-                if(lastmove->score > maxmove)
-                    maxmove = lastmove->score;
 
                 if(lastmove != bestmove)
                 {
@@ -160,8 +182,6 @@ MoveList* generatemovetree(Piece *root[8][8], char rootcolour, char movecolour, 
                     free(lastmove);
                 }
             }
-            //if(minmove < 5000 && minmove!=0 && maxmove!=0)
-            //    printf("min max %d %d\n", minmove, maxmove);
         }
     }
     return bestmove;
@@ -189,8 +209,9 @@ MoveList* generatemoves(Piece *board[8][8], char movecolour)
 int calcscore(Piece *board[8][8])
 {
     int score = 0;
-    int winc = incheck('w', board) * 400;
-    int binc = incheck('b', board) * -400;
+    int winc = 0;//incheck('w', board) * 40;
+    int binc = incheck('b', board) * -40;
+    int colourweight = 0;
     for(int i=0;i<8;++i)
     {
         for(int j=0;j<8;++j)
@@ -202,10 +223,18 @@ int calcscore(Piece *board[8][8])
                 //    score += board[i][j]->importance*10;
                 //}
                 score += board[i][j]->importance;
+                if(board[i][j]->colour == 'w')
+                {
+                    colourweight++;
+                }
+                if(board[i][j]->colour == 'b')
+                {
+                    colourweight--;
+                }
             }
         }
     }
-    return score + winc + binc;
+    return score + winc + binc + (colourweight*100);
 }
 
 void copyPiece(Piece* in, Piece* out)
@@ -252,7 +281,6 @@ MoveList* generatemove(int row, int col, int newrow, int newcol, Piece *board[8]
 
 }
 
-
 void movepiecetest(int row, int col, int newrow, int newcol, Piece *board[8][8])
 {
     board[newrow][newcol] = board[row][col];
@@ -261,6 +289,20 @@ void movepiecetest(int row, int col, int newrow, int newcol, Piece *board[8][8])
 
 void movepiecereal(int row, int col, int newrow, int newcol, Piece *board[8][8])
 {
+    if(row < 0 || row > 7 || col < 0 || col > 8)
+    {
+        return;
+    }
+
+    if(newrow < 0 || newrow > 7 || newcol < 0 || newcol > 8)
+    {
+        return;
+    }
+    if(board[row][col] == NULL)
+    {
+        return;
+    }
+
     if(board[newrow][newcol])
     {
         free(board[newrow][newcol]);
@@ -412,7 +454,6 @@ int incheck(char colour, Piece *board[8][8])
 
     }
     return isincheck;
-
 }
 
 MoveList* bishopmoves(int row, int col, Piece *board[8][8])
@@ -532,6 +573,15 @@ MoveList* joinmovelists(MoveList* list1, MoveList* list2)
 
 }
 
+void copymovelist(MoveList* src, MoveList* dest)
+{
+    dest->col = src->col;
+    dest->row = src->row;
+    dest->ocol = src->ocol;
+    dest->orow = src->orow;
+    dest->score = src->score;
+}
+
 void initialise_board(Piece *board[8][8])
 {
     initialise_side(board, 'b', 0, 1, -1);
@@ -578,4 +628,9 @@ void freemem(Piece *board[8][8])
 
         }
     }
+}
+
+void printmove(MoveList* mve)
+{
+    printf("from %d %d to %d %d\n", mve->orow, mve->ocol, mve->row, mve->col);
 }

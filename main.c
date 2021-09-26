@@ -16,29 +16,33 @@ int main(void)
         printboard(main_board);
         printf("White Move Current score %d Move %d\n", calcscore(main_board), i);
 
-        MoveList* move = generatemovetree(main_board, 'w', 'w', 4);
+        MoveList* move = generatemovetree(main_board, 'w', 'w', 5);
         if(move == NULL)
         {
             printf("B WIN\n");
             return 0;
         }
+        printmove(move);
         movepiecereal(move->orow, move->ocol, move->row, move->col, main_board);
         move->last=NULL;
         move->next=NULL;
         free(move);
+        move = NULL;
 
         printboard(main_board);
         printf("Black Move Current score %d move %d\n", calcscore(main_board), i);
-        move = generatemovetree(main_board, 'b', 'b',4);
+        move = generatemovetree(main_board, 'b', 'b',5);
         if(move == NULL)
         {
             printf("W WIN\n");
             return 0;
         }
+        printmove(move);
         movepiecereal(move->orow, move->ocol, move->row, move->col, main_board);
         move->last=NULL;
         move->next=NULL;
         free(move);
+        move = NULL;
     }
 
     freemem(main_board);
