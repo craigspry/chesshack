@@ -16,7 +16,7 @@ int main(void)
         printboard(main_board);
         printf("White Move Current score %d Move %d\n", calcscore(main_board), i);
 
-        MoveList* move = generatemovetree(main_board, 'w', 'w', 5);
+        MoveList* move = generatemovetree(main_board, 'w', 'w', 4);
         if(move == NULL)
         {
             printf("B WIN\n");
@@ -31,7 +31,7 @@ int main(void)
 
         printboard(main_board);
         printf("Black Move Current score %d move %d\n", calcscore(main_board), i);
-        move = generatemovetree(main_board, 'b', 'b',5);
+        move = generatemovetree(main_board, 'b', 'b', 2);
         if(move == NULL)
         {
             printf("W WIN\n");
