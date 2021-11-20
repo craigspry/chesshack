@@ -1,3 +1,7 @@
 bin/**
 obj/**
 build/**
+ChessHack.cbp
+ChessHack.depend
+ChessHack.layout
+ValgrindOut.xml
