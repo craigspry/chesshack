@@ -11,7 +11,7 @@ int main(void)
     initialise_board(main_board);
 
 
-    for(int i=0;i<50;++i)
+    for(int i=0;i<500;++i)
     {
         printboard(main_board);
         printf("White Move Current score %d Move %d\n", calcscore(main_board), i);

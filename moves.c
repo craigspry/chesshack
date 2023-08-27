@@ -8,7 +8,6 @@
 
 void printboard(Piece *board[8][8])
 {
-    //sleep(1);
     system ( "clear" );
     printf("\n_________________________________\n");
     for(int i=0;i<8;++i)
@@ -29,8 +28,6 @@ void printboard(Piece *board[8][8])
         }
         printf("\n_________________________________\n");
     }
-    //sleep(1);
-
 }
 
 MoveList* getmoves(int row, int col, char colour, Piece *board[8][8])
@@ -197,10 +194,6 @@ int calcscore(Piece *board[8][8])
         {
             if(board[i][j])
             {
-                //if(board[i][j]->moves == 1)
-                //{
-                //    score += board[i][j]->importance*10;
-                //}
                 score += board[i][j]->importance;
             }
         }
